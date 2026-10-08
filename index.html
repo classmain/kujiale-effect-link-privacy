@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<!--
+  酷家乐效果图快速打开 - 隐私政策（网页版，上架用）
+  版本号 : v1.19.3
+  更新时间: 2026-10-08 08:30:00
+  修改备注: v1.19.3 —— 本版无代码改动，仅同步隐私政策文档：
+    1) 修正「联系我们」的链接。原链接指向仓库 classmain/kujiale-effect-link，
+       而该仓库并不存在 —— 实际托管仓库名为 classmain/kujiale-effect-link-privacy。
+       该死链同时是 Edge 商店 1.5.2 认证失败的关联线索（详见 memory 2026-10-08）。
+    2) 更新日期随之刷新为 2026-10-08。
+    3) 修正正文自身的计数笔误：这一动作实际下辖四组接口（签到 / 每日任务积分 /
+       成长计划积分 / 结算读数），原文写作「三套」。
+    （本文件内容同步托管于 https://classmain.github.io/kujiale-effect-link-privacy/
+      即提交到 Edge 商店「隐私政策 URL」字段的那个地址）
+    上次改动（v1.19.0 / 2026-09-24 09:20:00）：补「网络请求说明」章节，
+      新增签到与结算读数两条链路说明。
+-->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -15,20 +31,44 @@
 </head>
 <body>
 <h1>隐私政策</h1>
-<p><strong>酷家乐效果图快速打开（Kujiale Effect Link）</strong> — Chrome/Edge 浏览器扩展<br>更新日期：2026-09-21</p>
+<p><strong>酷家乐效果图快速打开（Kujiale Effect Link）</strong> — Chrome/Edge 浏览器扩展<br>更新日期：2026-10-08</p>
 
 <h2>概述</h2>
-<p>本扩展用于在酷家乐（kujiale.com）方案列表页的卡片上提供"效果图"快捷按钮，并支持一键复制酷家乐登录 Cookie 以配合本地的方案查询工具使用。</p>
+<p>本扩展用于在酷家乐（kujiale.com）方案列表页的卡片上提供"效果图"快捷按钮，支持一键复制酷家乐登录 Cookie 以配合本地的方案查询工具使用，并支持一键签到、以及领取你账号下酷家乐每日任务与成长计划的可领积分。</p>
 <p><strong>本扩展不收集、不存储、不上传任何个人信息。</strong>所有操作均在你自己的浏览器和电脑本地完成。</p>
 
 <h2>权限用途说明</h2>
 <table>
   <tr><th>权限</th><th>用途</th></tr>
-  <tr><td>cookies</td><td>仅在你主动点击"复制"按钮时，读取 kujiale.com 域下的登录 Cookie 并复制到剪贴板，供本地查询工具粘贴使用；扩展本身不会将 Cookie 发送到任何网络地址</td></tr>
+  <tr><td>cookies</td><td>仅在你主动点击"复制"按钮时，读取 kujiale.com 域下的登录 Cookie 并复制到剪贴板，供本地查询工具粘贴使用；Cookie 只会写入你本机的剪贴板，扩展不会把它上传到任何地方</td></tr>
   <tr><td>clipboardWrite</td><td>将 Cookie 写入系统剪贴板</td></tr>
   <tr><td>storage</td><td>仅在本地记录"提示气泡是否已显示"，用于每月 20 号提示一次；数据只存在浏览器本地</td></tr>
-  <tr><td>https://*.kujiale.com/（主机权限）</td><td>仅在酷家乐的两个方案列表页注入"效果图"按钮</td></tr>
+  <tr><td>https://*.kujiale.com/（主机权限）</td><td>在酷家乐的两个方案列表页与两个成长中心页注入"效果图"与"签到并领取积分"按钮</td></tr>
 </table>
+
+<h2>网络请求说明</h2>
+<p><strong>除了你主动点击"签到并领取积分"按钮这一种情况，本扩展不发起任何网络请求。</strong></p>
+<p>当你在酷家乐页面顶部导航点击"签到并领取积分"时，扩展会以<strong>你自己的登录态</strong>向 <code>https://www.kujiale.com</code> 发起同源请求，完成签到并领取你账号下可领的积分。这一动作会按顺序调用四组互相独立的接口：</p>
+<p><strong>签到（motivate / sign_in，自 1.19.0 起）</strong></p>
+<ul>
+  <li><code>GET /motivate/api/sign_in/detail</code> —— 读取你今天是否已签到（已签到就不会重复提交）</li>
+  <li><code>PUT /motivate/api/sign_in</code> —— 提交签到（无请求体）</li>
+</ul>
+<p><strong>每日任务积分（motivate）</strong></p>
+<ul>
+  <li><code>GET /api/motivate/reward/unreceived/list</code> —— 读取待领奖励列表</li>
+  <li><code>POST /api/motivate/reward/receive</code> —— 逐条提交领取</li>
+</ul>
+<p><strong>成长计划积分（learning-map）</strong></p>
+<ul>
+  <li><code>GET /saas-pm/api/learning-map/module-tasks</code> —— 读取任务清单，挑出"已完成待领取"的任务</li>
+  <li><code>POST /saas-pm/api/learning-map/receive-reward</code> —— 逐条提交领取</li>
+</ul>
+<p><strong>结算读数（核对实际到账，自 1.18.0 起；1.19.0 起覆盖签到）</strong></p>
+<ul>
+  <li><code>GET /usercenter/api/kubi/info?includePoint=true</code> —— 点击前后各读一次你本账号的积分余额，两者相减即本次实际入账的分数（按钮上那个数字的来源）；若有内容成功，8 秒后会再读一次以捕捉延迟入账</li>
+</ul>
+<p>这些请求<strong>只在点击时发生</strong>：页面加载、翻页、滚动以及任何其他操作都不会触发。请求内容仅为签到/领取所需的标识与对你本账号积分余额的读取，不携带任何额外信息，也不经由任何第三方服务器。</p>
 
 <h2>数据收集与分享</h2>
 <ul>
@@ -49,6 +89,6 @@
 
 <h2>联系我们</h2>
 <p>如有隐私相关问题，请通过 GitHub Issues 联系我们：<br>
-<a href="https://github.com/classmain/kujiale-effect-link/issues">https://github.com/classmain/kujiale-effect-link/issues</a></p>
+<a href="https://github.com/classmain/kujiale-effect-link-privacy/issues">https://github.com/classmain/kujiale-effect-link-privacy/issues</a></p>
 </body>
 </html>
